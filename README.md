@@ -1,2 +1,2 @@
-# Financial-chart-tool
+# Financial Stock-chart-tool
 A chart tool used to sort and filter historical stock information about companies
