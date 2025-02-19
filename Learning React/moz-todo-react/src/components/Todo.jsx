@@ -1,9 +1,12 @@
+import PropTypes from "prop-types";
 
 function Todo(props) {
     return(
         <li className="todo stack-small">
         <div className="c-cb">
+       
           <input id={props.id} type="checkbox" defaultChecked ={props.completed} />
+           
           <label className="todo-label" htmlFor={props.id}>
            {props.name}
           </label>
@@ -19,5 +22,11 @@ function Todo(props) {
       </li>
     );
 }
+
+Todo.propTypes = {
+  id: PropTypes.string.isRequired,       
+  name: PropTypes.string.isRequired,     
+  completed: PropTypes.bool.isRequired,
+};
 
 export default Todo;
