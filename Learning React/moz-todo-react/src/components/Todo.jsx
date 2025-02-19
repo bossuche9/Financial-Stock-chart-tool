@@ -1,10 +1,11 @@
-function Todo() {
+
+function Todo(props) {
     return(
         <li className="todo stack-small">
         <div className="c-cb">
-          <input id="todo-0" type="checkbox" defaultChecked />
+          <input id={props.id} type="checkbox" defaultChecked ={props.completed} />
           <label className="todo-label" htmlFor="todo-0">
-            Eat
+           {props.name}
           </label>
         </div>
         <div className="btn-group">
