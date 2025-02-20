@@ -1,9 +1,18 @@
 
+import { useState } from "react";
 
-function Form() {
+
+function Form(props) {
+  
+  const [name , setName] = useState("");
+
   function handleSubmit(event) {
     event.preventDefault();
-    alert("Hello,world!");
+    props.addTask("Say hello");
+  }
+
+  function handleChange(){
+    console.log("Typing");
   }
     return (
       <form onSubmit={handleSubmit}>
@@ -18,6 +27,8 @@ function Form() {
           className="input input__lg"
           name="text"
           autoComplete="off"
+          value = {name}
+          onChange={handleChange}
         />
         <button type="submit" className="btn btn__primary btn__lg">
           Add
