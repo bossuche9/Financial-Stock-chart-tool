@@ -3,7 +3,7 @@ import FilterButton from "./components/FilterButton";
 import Todo from "./components/Todo";
 import { useState } from "react";
 import {nanoid} from "nanoid"
-
+import PropTypes from "prop-types";
 
 function App(props) {
 
@@ -63,5 +63,15 @@ function App(props) {
     </div>
   );
 }
+
+App.propTypes = {
+    task: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,     
+        completed: PropTypes.bool.isRequired,
+      })
+    ).isRequired
+  };
 
 export default App;
