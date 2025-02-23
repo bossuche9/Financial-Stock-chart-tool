@@ -8,11 +8,13 @@ function Form(props) {
 
   function handleSubmit(event) {
     event.preventDefault();
-    props.addTask("Say hello");
+    props.addTask(name);
+    setName("");
   }
 
-  function handleChange(){
-    console.log("Typing");
+  function handleChange(event){
+    setName(event.target.value);
+    console.log(event.target.value)
   }
     return (
       <form onSubmit={handleSubmit}>
