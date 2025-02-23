@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-
+import PropTypes from "prop-types";
 
 function Form(props) {
   
@@ -38,6 +38,10 @@ function Form(props) {
       </form>
     );
   }
+
+  Form.propTypes = {
+    addTask: PropTypes.string.isRequired,
+  };
   
   export default Form;
   
