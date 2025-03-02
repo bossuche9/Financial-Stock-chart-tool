@@ -39,7 +39,7 @@ console.log(
   // We pass the index to the ...Create functions so that, for example,
   // genre[0] will always be the Fantasy genre, regardless of the order
   // in which the elements of promise.all's argument complete.
-  async function genreCreate(index, name) {
+  async function genreCreate(index, name) { 
     const genre = new Genre({ name: name });
     await genre.save();
     genres[index] = genre;

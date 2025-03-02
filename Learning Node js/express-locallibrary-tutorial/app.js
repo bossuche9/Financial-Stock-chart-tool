@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require("mongoose")
+require('dotenv').config();
 
 
 const indexRouter = require('./routes/index');
@@ -30,7 +31,7 @@ app.use('/wiki', wikisRouter);
 
 
 mongoose.set("strictQuery", false);
-const mongoDB = "mongodb+srv://uchennaobi102:l5jA98MKyb67HjRr@cluster0.hqexa.mongodb.net/local_library?retryWrites=true&w=majority&appName=Cluster0";
+const mongoDB = process.env.MONGO_URL
 
 main().catch((err) => console.log(err));
 async function main (){
