@@ -1,10 +1,11 @@
+require('dotenv').config();
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require("mongoose")
-require('dotenv').config();
+
 
 
 const indexRouter = require('./routes/index');
@@ -31,7 +32,7 @@ app.use('/wiki', wikisRouter);
 
 
 mongoose.set("strictQuery", false);
-const mongoDB = process.env.MONGO_URL
+const mongoDB = process.env.MONGO_URI
 
 main().catch((err) => console.log(err));
 async function main (){
