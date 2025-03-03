@@ -1,4 +1,6 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config();
+console.log("Mongo URI:", process.env.MONGO_URI);
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
