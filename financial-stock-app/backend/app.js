@@ -6,19 +6,16 @@ const connectDB = require("./config/db");
 
 const indexRouter = require ("./routes/index");
 
+const PORT =process.env.PORT || 5000;
 const app = express();
+
 app.use(express.json());
 app.use(cors())
-app.set("view engine", "ejs");
+
 
 app.use('/', indexRouter);
 
 connectDB();
-
-const PORT =process.env.PORT || 5000;
-app.listen(PORT, ()=> {
-    console.log(`Server Started at ${PORT}`)
-});
 
  // error handlers
 app.use(function(req, res, next) {
@@ -31,8 +28,12 @@ app.use(function(req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
   
     res.status(err.status || 500);
-    res.render('error');
+    res.json('error page does not exist');
   });
+
+  app.listen(PORT, ()=> {
+    console.log(`Server Started at ${PORT}`)
+});
   
   module.exports = app;
   
