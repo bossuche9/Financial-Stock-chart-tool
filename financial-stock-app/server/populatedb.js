@@ -7,8 +7,9 @@ require('dotenv').config();
 const stock = [];
 const user = [];
 const watchList =[];
-const stockUrl = "https://www.alphavantage.co/query?function=MARKET_STATUS&apikey=";
 const stockApiKey = process.env.ALPHA_VINTAGE_API_KEY;
+const ticker = "TSLA"
+const stockUrl = "https://www.alphavantage.co/query?function=SMA&symbol={ticker}&interval=daily&time_period=10&series_type=close&apikey=${stockApiKey}";
 const mongoDB = process.env.MONGO_URL;
 
 const mongoose = require ('mongoose');
@@ -19,23 +20,15 @@ main().catch((err) => console.log(err));
 async function main(){
     console.log("Awaiting Database Connection");
     await mongoose.connect(mongoDB);
+    console.log("Connected to MongoDB");
 }
 
-async function getData(data){
+async function fetchStockData(symbol)
     try{
-        const response = await fetch(url, {
-            headers: {
-                'x-api_key' : stockApiKey
-            },
-            method: "GET"
-        })
-
-        if(!response.ok){
-            throw new Error(`Response status: ${response.status}`);
-        }
+      const response = await fetch(``)
     }
 
 
-}
+} 
 
 
