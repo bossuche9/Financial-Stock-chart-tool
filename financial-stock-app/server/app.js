@@ -3,6 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");   
 const authRoutes = require('./routes/authRoutes.js');
+const stockRoutes = require('./routes/stockRoutes.js');
+const createError = require('http-errors');
+
 
 const PORT =process.env.PORT || 5000;
 const app = express();
@@ -13,6 +16,7 @@ app.use(express.json());
 app.use(cors())
 
 app.use('/api', authRoutes);
+app.use('/stocks', stockRoutes)
 
 // Default route
 app.get('/', (req, res) => {

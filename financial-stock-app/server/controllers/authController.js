@@ -1,4 +1,3 @@
-// /controllers/authController.js
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -8,18 +7,15 @@ const asyncHandler = require("express-async-handler");
 const registerUser = asyncHandler(async (req, res, next) => {
 
     console.log("Password received:", req.body.password);
-
-    
-
     const existingUserEmail = await User.findOne({ email: req.body.email });
     const existingUserName = await User.findOne({username:req.body.username});
     if (existingUserEmail) {
       return res.status(400).json({ error: 'Email already exists' });
     }
-    else if (existingUserName) {
+    if (existingUserName) {
       return res.status(400).json({ error: 'Username already exists' });
     }
-    else if(req.body.password.length < 6) {
+    if(req.body.password.length < 6) {
       return res.status(400).json({ error: 'Password length too short. Must be at least 6 characters' });
     }
 
