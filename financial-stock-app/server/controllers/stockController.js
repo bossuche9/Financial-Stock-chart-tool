@@ -20,7 +20,7 @@ const searchStock = asyncHandler(async (req, res) => {
         console.log("Fetching from API...");
 
         try {
-            // Fetch stock overview (name, description, market cap, etc.)
+           
             const overviewResponse = await axios.get(
                 `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${apiKey}`
             );
@@ -30,7 +30,7 @@ const searchStock = asyncHandler(async (req, res) => {
                 return res.status(400).json({ message: "Company overview not found." });
             }
 
-            // Fetch daily time series data for stock prices (lastClose, prevClose, volume)
+            
             const dailyResponse = await axios.get(
                 `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}`
             );
@@ -43,7 +43,6 @@ const searchStock = asyncHandler(async (req, res) => {
             const latestDate = Object.keys(dailyData["Time Series (Daily)"])[0];
             const latestData = dailyData["Time Series (Daily)"][latestDate];
 
-            
             stock = new Stock({
                 symbol: overviewData.Symbol,
                 name: overviewData.Name,
@@ -63,8 +62,38 @@ const searchStock = asyncHandler(async (req, res) => {
         }
     }
 
-    // Respond with the stock info (from the database)
+    
     res.json(stock);
 });
 
-module.exports = { searchStock };
+const dropdownSearchSymbols = asyncHandler(async(req,res) => {
+    const { keywords } = req.query;
+    
+    if(!keywords) {
+        return res.status(400).json({message: "Search keywords are required."});
+    }
+
+    try{
+        const response = await axios.get(
+             `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${keywords}&apikey=${apiKey}`
+        );
+
+        const symbolSearchData = response.data;
+
+        if(symbolSearchData && symbolSearchData.bestMatches) {
+            const symbols = response.data.bestMatches.map(match => ({
+                symbol: match['1. symbol'],
+                name: match['2. name'],
+            }));
+
+            return res.json(symbols);
+        } else {
+            return res.status(404).json({message: "Error searching symbols"});
+        }
+    }catch(error) {
+        console.error("Error searching symbols:", error);
+        return res.status(500).json({message: "Error searching symbols"});
+    }
+});
+
+module.exports = { searchStock, dropdownSearchSymbols };

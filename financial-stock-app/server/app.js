@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(cors())
 
 app.use('/api', authRoutes);
-app.use('/stocks', stockRoutes)
+app.use('/api', stockRoutes)
 
 // Default route
 app.get('/', (req, res) => {

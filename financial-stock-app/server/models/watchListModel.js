@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const stock = require("./stock");
+
 
 const Schema = mongoose.Schema;
 
@@ -9,4 +9,4 @@ const watchlistSchema = new Schema ({
 
 })
 
-module.exports = mongoose.model("Watchist",watchlistSchema);
+module.exports = mongoose.model("Watchlist", watchlistSchema);
