@@ -13,10 +13,7 @@ const app = express();
 connectDB();
 
 app.use(express.json());
-app.use(cors({
-  origin: "https://special-space-meme-4w675g6967rhjpxw-5173.app.github.dev",
-  credentials: true
-}));
+app.use(cors());
 
 
 app.use('/api', authRoutes);

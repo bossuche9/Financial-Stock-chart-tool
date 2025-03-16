@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_URL } from '../config';
 
-const API_URL = 'https://special-space-meme-4w675g6967rhjpxw-3000.app.github.dev/api';
+
  // Adjust if your backend runs on a different port
 
 export const registerUser = async (userData) => {
