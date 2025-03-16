@@ -7,13 +7,17 @@ const stockRoutes = require('./routes/stockRoutes.js');
 const createError = require('http-errors');
 
 
-const PORT =process.env.PORT || 5000;
+const PORT =process.env.PORT || 3000;
 const app = express();
 
 connectDB();
 
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+  origin: "https://special-space-meme-4w675g6967rhjpxw-5173.app.github.dev",
+  credentials: true
+}));
+
 
 app.use('/api', authRoutes);
 app.use('/api', stockRoutes)
@@ -21,6 +25,10 @@ app.use('/api', stockRoutes)
 // Default route
 app.get('/', (req, res) => {
   res.send('Welcome to my User Registration and Login API!');
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working!' });
 });
 
  // error handlers

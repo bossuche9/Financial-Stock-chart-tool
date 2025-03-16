@@ -6,7 +6,7 @@ const asyncHandler = require("express-async-handler");
 
 const registerUser = asyncHandler(async (req, res, next) => {
 
-    console.log("Password received:", req.body.password);
+  console.log("Received registration request:", req.body);
     const existingUserEmail = await User.findOne({ email: req.body.email });
     const existingUserName = await User.findOne({username:req.body.username});
     if (existingUserEmail) {
