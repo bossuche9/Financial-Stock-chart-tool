@@ -24,7 +24,7 @@ app.use('/api', watchListRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.send('Welcome to my User Registration and Login API!');
+  res.send('Welcome to my Stock API!');
 });
 
 app.get('/api/test', (req, res) => {

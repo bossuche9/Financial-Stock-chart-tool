@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { loginUser } from "../api/auth";
+import { useNavigate } from "react-router-dom"
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         setFormData({ ...formData, [event.target.name]: event.target.value });
@@ -15,6 +17,7 @@ const Login = () => {
             const res = await loginUser(formData);
             localStorage.setItem("token", res.data.token);
             setMessage("Login successful");
+            navigate("/watchlist")
             setFormData({email:"", password:""});
         } catch (error) {
             setMessage(error.response?.data?.error || "Login failed");

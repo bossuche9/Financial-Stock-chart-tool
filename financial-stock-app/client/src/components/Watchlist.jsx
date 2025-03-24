@@ -44,9 +44,9 @@ const Watchlist = () => {
         console.log(`Trying to adding ${symbol} to watchlist`);
         
         try{
-            const response = await addToWatchlist(token,symbol.trim());
+            await addToWatchlist(token,symbol.trim());
             fetchWatchListDetails();
-            setMessage(`Added ${response.data.symbol} to watchlist`);
+            setMessage(`Added ${symbol.toUpperCase()} to watchlist`);
             setSymbol("");
         } catch(error) {
             console.error(`Adding ${symbol} error:`, error);
@@ -91,9 +91,7 @@ const Watchlist = () => {
             <ul>{stockWatchList}</ul>
          )
     }
-
-   
-    
+ 
     return(
         <div>
             <h1>Watchlist</h1>
