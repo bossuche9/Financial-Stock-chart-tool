@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loginUser } from "../api/auth";
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: "", password: "" });
@@ -17,12 +17,17 @@ const Login = () => {
             const res = await loginUser(formData);
             localStorage.setItem("token", res.data.token);
             setMessage("Login successful");
-            navigate("/watchlist")
             setFormData({email:"", password:""});
+            navigate("/watchlist");
+            
         } catch (error) {
             setMessage(error.response?.data?.error || "Login failed");
         }
     };
+
+    function timeout(delay) {
+        return new Promise(res => (res,delay))
+    }
 
     return (
         <div>
@@ -32,7 +37,7 @@ const Login = () => {
                 type="email" 
                 name="email" 
                 placeholder="Email" 
-                onChange={handleChange} 
+                onChange={handleChange} s
                 required />
                 <input 
                 type="password" 
@@ -42,6 +47,7 @@ const Login = () => {
                 required />
                 <button type="submit">Login</button>
             </form>
+            <p>Not registered,<Link to = {"/"}> click here to Register</Link></p>
             {message && <p>{message}</p>}
         </div>
     );

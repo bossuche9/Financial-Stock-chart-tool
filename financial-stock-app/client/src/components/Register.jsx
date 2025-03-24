@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { registerUser } from "../api/auth";
+import {Link, useNavigate} from "react-router-dom"
 
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: "", email: "", password: "" });
     const [message, setMessage] = useState("");
+    const navigation = useNavigate();
 
     const handleChange = (event) => {
         setFormData({ ...formData, [event.target.name]: event.target.value });
@@ -17,11 +19,18 @@ const Register = () => {
             const res = await registerUser(formData);
             setMessage(res.data.message);
             setFormData({username: "", email:"", password:""});
+            await timeout(4000);
+            navigation("/login");
+
         } catch (error) {
             console.error('Registration error:', error);
             setMessage(error.response?.data?.error || "Registration failed");
         }
     };
+
+    function timeout(delay) {
+        return new Promise(res => (res,delay))
+    }
 
     return (
         <div>
@@ -48,6 +57,7 @@ const Register = () => {
                 <button type="submit">Register</button>
             </form>
             {message && <p>{message}</p>}
+            <p>Already registered,<Link to = {"/login"}> click here to login</Link></p>
         </div>
     );
 };

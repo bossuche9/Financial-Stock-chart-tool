@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: ` ${req.body.username} registered successfully` });
   } );
 
 const loginUser = asyncHandler(async (req, res, next) => {
