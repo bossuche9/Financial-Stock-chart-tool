@@ -4,7 +4,9 @@ const cors = require("cors");
 const connectDB = require("./config/db");   
 const authRoutes = require('./routes/authRoutes.js');
 const stockRoutes = require('./routes/stockRoutes.js');
+const watchListRoutes = require('./routes/watchListRoutes.js')
 const createError = require('http-errors');
+const { watch } = require('./models/userModel.js');
 
 
 const PORT =process.env.PORT || 3000;
@@ -17,7 +19,8 @@ app.use(cors());
 
 
 app.use('/api', authRoutes);
-app.use('/api', stockRoutes)
+app.use('/api', stockRoutes);
+app.use('/api', watchListRoutes);
 
 // Default route
 app.get('/', (req, res) => {

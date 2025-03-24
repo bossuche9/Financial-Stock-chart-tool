@@ -46,6 +46,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
     const token = jwt.sign({ email: user.email }, 'secret');
     res.status(200).json({ token });
+    console.log(`${user} logged in Successfully`);
   } );
 
 const getUserDetails = asyncHandler(async (req, res, next) => {
@@ -77,6 +78,16 @@ const getUserDetails = asyncHandler(async (req, res, next) => {
     await User.findByIdAndDelete(user._id);
 
     res.status(200).json({ message: 'User deleted successfully' });
+  });
+  
+  const forgetPassword = asyncHandler(async(req,res) => {
+    const user = await User.findOne({ email: req.body.email});
+
+    if (!user) {
+      return res.status(404).json({message: "User not found"});
+    }
+
+   // const token
   });
 
 module.exports = { registerUser, loginUser, getUserDetails, deleteUser };

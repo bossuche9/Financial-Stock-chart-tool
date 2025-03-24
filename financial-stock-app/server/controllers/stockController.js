@@ -17,7 +17,7 @@ const searchStock = asyncHandler(async (req, res) => {
     let stock = await Stock.findOne({ symbol });
 
     if (!stock) {
-        console.log("Fetching from API...");
+        console.log(`Fetching ${stock} stock from API ...`);
 
         try {
            
@@ -56,9 +56,10 @@ const searchStock = asyncHandler(async (req, res) => {
 
             // Save the stock info to the database
             await stock.save();
+            console.log(`Stored ${stock} stock in database`);
         } catch (error) {
-            console.error("Error fetching stock data:", error);
-            return res.status(500).json({ message: "Error fetching stock data" });
+            console.error("Error fetching stock data from API:", error);
+            return res.status(500).json({ message: "Error fetching stock data from API" });
         }
     }
 
@@ -78,6 +79,8 @@ const dropdownSearchSymbols = asyncHandler(async(req,res) => {
              `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${keywords}&apikey=${apiKey}`
         );
 
+        console.log("Alpha Vantage Response:", JSON.stringify(response.data, null, 2));
+        
         const symbolSearchData = response.data;
 
         if(symbolSearchData && symbolSearchData.bestMatches) {
@@ -89,10 +92,11 @@ const dropdownSearchSymbols = asyncHandler(async(req,res) => {
             return res.json(symbols);
         } else {
             return res.status(404).json({message: "Error searching symbols"});
+            
         }
     }catch(error) {
-        console.error("Error searching symbols:", error);
-        return res.status(500).json({message: "Error searching symbols"});
+        console.error("Error searching symbols:", error.response ? error.response.data : error.message);
+        return res.status(500).json({message: "Error failed to get data from API", details: error.message});
     }
 });
 

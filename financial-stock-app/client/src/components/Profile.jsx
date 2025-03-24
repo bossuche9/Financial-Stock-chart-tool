@@ -15,6 +15,7 @@ const Profile = () => {
         try {
             const res = await getUserDetails(token);
             setUser(res.data);
+            console.log("User after being fetched",user);
         } catch (err) {
             setError(err.response?.data?.error || "Failed to fetch user details");
         }

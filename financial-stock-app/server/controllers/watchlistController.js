@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const apiKey = process.env.ALPHA_VINTAGE_API_KEY;
 
-const getchWatchlist = asyncHandler(async(req, res) => {
+const getWatchlist = asyncHandler(async(req, res) => {
     const userEmail = req.user.email;
 
     const user = await User.findOne({email: userEmail}).populate('watchlist');
@@ -31,7 +31,7 @@ const addToWatchlist = asyncHandler(async(req, res) => {
         return res.status(404).json({message: "User does not exist." });
     }
 
-    const stock = await Stock.findOne({ symbol: symbol.toUpperCase() });
+    let stock = await Stock.findOne({ symbol: symbol.toUpperCase() });
     if(!stock) {
     console.log("Fetching from API...");
     try {
@@ -71,12 +71,11 @@ const addToWatchlist = asyncHandler(async(req, res) => {
 
         // Save the stock info to the database
         await stock.save();
+        console.log(symbol, "added to watchlist")
     } catch (error) {
         console.error("Error fetching stock data:", error);
         return res.status(500).json({ message: "Error fetching stock data" });
     }
-    }else{
-        return res.status(404).json({message: "stock details not avaialbe on this app" });
     }
 
     if (user.watchlist.some(id => id.toString() === stock._id.toString())){
@@ -87,7 +86,7 @@ const addToWatchlist = asyncHandler(async(req, res) => {
     await user.save();
 
     const updatedUser = await User.findById(user._id).populate('watchlist');
-    res.json({watchlist: updatedUser.watchlist});
+    res.json({watchlist: updatedUser.watchlist, message: `${symbol} added to watchlist` });
 });
 
 const removeFromWatchlist = asyncHandler(async (req, res) => {
@@ -110,9 +109,10 @@ const removeFromWatchlist = asyncHandler(async (req, res) => {
 
     user.watchlist = user.watchlist.filter(stockId => stockId.toString() != stock._id.toString());
     await user.save();
-
+    console.log(symbol, "removed from watchlist");
+    
     const updatedUser = await User.findById(user._id).populate('watchlist');
-    res.json({watchlist: updatedUser.watchlist});
+    res.json({watchlist: updatedUser.watchlist, message: `${symbol} removed to watchlist`});
 });
 
-module.exports = { getchWatchlist, addToWatchlist, removeFromWatchlist}
+module.exports = { getWatchlist, addToWatchlist, removeFromWatchlist};
