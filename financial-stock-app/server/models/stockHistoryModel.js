@@ -15,7 +15,8 @@ const stockHistoryModel = new Schema({
             adjClose: {type: Number},
             volume: {type: Number, required: true}
         }
-    ]
-})
+    ],
+    updatedAt: { type: Date, default: Date.now }
+});
 
 module.exports = mongoose.model('StockHistory', stockHistoryModel);

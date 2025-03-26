@@ -31,7 +31,13 @@ const addToWatchlist = asyncHandler(async(req, res) => {
         return res.status(404).json({message: "User does not exist." });
     }
 
-    let stock = await Stock.findOne({ symbol: symbol.toUpperCase() });
+    let stock = await Stock.findOne({symbol: symbol.toUpperCase()});
+
+    if(!stock){
+        stock = await Stock.findOne({name: {$regex: new RegExp(`${symbol}$`, "i") } });
+    }
+    
+   
     if(!stock) {
     console.log("Fetching from API...");
     try {

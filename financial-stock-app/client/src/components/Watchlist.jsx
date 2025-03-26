@@ -80,7 +80,7 @@ const Watchlist = () => {
 
      function DisplayWatchList() {
         const stockWatchList = watchList.map(stock =>
-            <li key = {stock.id}>
+            <li key = {stock.id} alt ={stock.name}>
                 <p>Stocknname: { stock.name} Symbol: {stock.symbol} Price: ${stock.lastClose}
                     <button onClick={()=>handleRemoveStock(stock.symbol)}>Delete</button>
                 </p>
