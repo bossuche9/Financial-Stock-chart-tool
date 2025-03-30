@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { 
   LineChart, 
@@ -24,48 +24,16 @@ const TIME_RANGES = [
 ];
 
 const StockChart = () => {
-  // State for stock input and search
+  // State definitions
   const [symbol, setSymbol] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  
-  // State for chart data
   const [historicalData, setHistoricalData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState('1y');
-  
-  // State for UI
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  // State for stock details
-  const [stockDetails, setStockDetails] = useState({
-    name: '',
-    marketCap: 0,
-    symbol: '',
-    volumeData: 0,
-    lastClose: 0,
-    currency: ''
-  });
 
-  // Using useMemo for derived state
-  const filteredData = useMemo(() => {
-    return filterDataByTimeRange(historicalData, selectedTimeRange);
-  }, [historicalData, selectedTimeRange]);
-
-  // Calculate percentage change
-  const priceChange = useMemo(() => {
-    if (filteredData.length < 2) return { value: 0, percentage: 0 };
-    
-    const latest = filteredData[filteredData.length - 1].close;
-    const earliest = filteredData[0].close;
-    const change = latest - earliest;
-    const percentage = (change / earliest) * 100;
-    
-    return {
-      value: change,
-      percentage: percentage
-    };
-  }, [filteredData]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const fetchSuggestions = async (query) => {
     if (query.length < 1) {
@@ -96,7 +64,7 @@ const StockChart = () => {
   };
 
   // Filter data based on time range
-  function filterDataByTimeRange(data, range) {
+  const filterDataByTimeRange = (data, range) => {
     if (!data || data.length === 0) return [];
 
     let filteredData = [...data];
@@ -167,56 +135,6 @@ const StockChart = () => {
     return filteredData;
   };
 
-  // Format market cap for display
-  const formatMarketCap = (marketCap) => {
-    if (!marketCap) return 'N/A';
-    
-    if (marketCap >= 1_000_000_000_000) {
-      return `$${(marketCap / 1_000_000_000_000).toFixed(2)}T`;
-    } else if (marketCap >= 1_000_000_000) {
-      return `$${(marketCap / 1_000_000_000).toFixed(2)}B`;
-    } else if (marketCap >= 1_000_000) {
-      return `$${(marketCap / 1_000_000).toFixed(2)}M`;
-    } else if (marketCap >= 1_000) {
-      return `$${(marketCap / 1_000).toFixed(2)}K`;
-    } else {
-      return `$${marketCap}`;
-    }
-  };
-
-  // Format volume for display
-  const formatVolume = (volume) => {
-    if (!volume) return 'N/A';
-    
-    if (volume >= 1_000_000_000) {
-      return `${(volume / 1_000_000_000).toFixed(2)}B`;
-    } else if (volume >= 1_000_000) {
-      return `${(volume / 1_000_000).toFixed(2)}M`;
-    } else if (volume >= 1_000) {
-      return `${(volume / 1_000).toFixed(2)}K`;
-    } else {
-      return volume.toString();
-    }
-  };
-
-  // Fetch stock details
-  const fetchStockDetails = async (symbolToFetch) => {
-    try {
-      const response = await axios.post('/api/stocks/search', { symbol: symbolToFetch });
-      setStockDetails({
-        name: response.data.name || '',
-        marketCap: response.data.marketCap || 0,
-        symbol: response.data.symbol || '',
-        volumeData: response.data.volumeData || 0,
-        lastClose: response.data.lastClose || 0,
-        currency: response.data.currency || 'USD'
-      });
-    } catch (error) {
-      console.error('Error fetching stock details:', error);
-      // Don't set error state - we'll let the historical data fetch handle errors
-    }
-  };
-
   // Fetch historical data
   const fetchHistoricalData = async (symbolToFetch = symbol) => {
     if (!symbolToFetch) return;
@@ -225,20 +143,19 @@ const StockChart = () => {
     setError(null);
   
     try {
-      // Fetch stock details first
-      await fetchStockDetails(symbolToFetch);
-      
-      // First call to fetch and store the data
+      // Use relative paths
       const postResponse = await axios.post('/api/stocks/historical', { symbol: symbolToFetch });
-      
-      // Only proceed to get the data after the first call completes successfully
-      if (postResponse.status === 200) {
+
+      if(postResponse.status === 200) {
         const response = await axios.get(`/api/historical/${symbolToFetch}`);
-        
+      
         const data = response.data.historicalData;
-  
+    
         setHistoricalData(data);
+        const filtered = filterDataByTimeRange(data, selectedTimeRange);
+        setFilteredData(filtered);
       }
+ 
     } catch (error) {
       console.error('Error fetching historical data:', error);
       setError('Failed to fetch stock data. Please check the symbol and try again.');
@@ -250,10 +167,12 @@ const StockChart = () => {
   // Handle time range selection
   const handleTimeRangeSelect = (range) => {
     setSelectedTimeRange(range);
+    const filtered = filterDataByTimeRange(historicalData, range);
+    setFilteredData(filtered);
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-5xl">
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         {/* Search and Input Section */}
         <div className="p-4 bg-gray-100 flex items-center space-x-4 relative">
@@ -270,7 +189,7 @@ const StockChart = () => {
             disabled={loading}
             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors"
           >
-            {loading ? 'Fetching...' : 'Fetch Data'}
+            {loading ? 'Getting data...' : 'Search Stock'}
           </button>
 
           {showSuggestions && suggestions.length > 0 && (
@@ -288,28 +207,6 @@ const StockChart = () => {
             </div>
           )}
         </div>
-
-        {/* Stock Header */}
-        {stockDetails.name && (
-          <div className="p-4 bg-gray-50 border-b">
-            <div className="flex flex-wrap justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {stockDetails.name} ({stockDetails.symbol})
-                </h2>
-                <div className="text-gray-600 mt-1">
-                  {stockDetails.lastClose > 0 ? `$${stockDetails.lastClose.toFixed(2)} ${stockDetails.currency}` : 'Price not available'}
-                </div>
-              </div>
-              {priceChange.value !== 0 && (
-                <div className={`text-lg font-medium ${priceChange.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {priceChange.value >= 0 ? '+' : ''}
-                  {priceChange.value.toFixed(2)} ({priceChange.percentage.toFixed(2)}%)
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Time Range Buttons */}
         <div className="flex justify-center space-x-2 p-4 bg-gray-50 flex-wrap">
@@ -336,115 +233,46 @@ const StockChart = () => {
           </div>
         )}
 
-        {/* Chart and Details Section */}
-        <div className="p-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Chart takes up 3/4 of the width on large screens */}
-          <div className="lg:col-span-3">
-            {filteredData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={filteredData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(tick) => new Date(tick).toLocaleDateString()} 
-                    className="text-sm"
-                  />
-                  <YAxis 
-                    className="text-sm"
-                    tickFormatter={(value) => `$${value.toFixed(2)}`}
-                  />
-                  <Tooltip 
-                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                    formatter={(value) => [`$${value.toFixed(2)}`, 'Close Price']}
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-                      border: '1px solid #ddd',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="close" 
-                    stroke="#3b82f6" 
-                    strokeWidth={3}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-gray-500 py-10">
-                {loading 
-                  ? 'Loading...' 
-                  : 'Enter a stock symbol to view historical data'}
-              </div>
-            )}
-          </div>
-          
-          {/* Stock details takes up 1/4 of the width on large screens */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-bold mb-4">Stock Details</h3>
-            
-            {stockDetails.symbol ? (
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm text-gray-500">Symbol</div>
-                  <div className="font-medium">{stockDetails.symbol}</div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-gray-500">Company</div>
-                  <div className="font-medium">{stockDetails.name || 'N/A'}</div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-gray-500">Market Cap</div>
-                  <div className="font-medium">{formatMarketCap(stockDetails.marketCap)}</div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-gray-500">Volume</div>
-                  <div className="font-medium">{formatVolume(stockDetails.volumeData)}</div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-gray-500">Last Close</div>
-                  <div className="font-medium">
-                    {stockDetails.lastClose ? `$${stockDetails.lastClose.toFixed(2)}` : 'N/A'}
-                  </div>
-                </div>
-                
-                {filteredData.length > 0 && (
-                  <>
-                    <div>
-                      <div className="text-sm text-gray-500">Period High</div>
-                      <div className="font-medium">
-                        ${Math.max(...filteredData.map(d => d.high)).toFixed(2)}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm text-gray-500">Period Low</div>
-                      <div className="font-medium">
-                        ${Math.min(...filteredData.map(d => d.low)).toFixed(2)}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm text-gray-500">Period Change</div>
-                      <div className={`font-medium ${priceChange.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {priceChange.value >= 0 ? '+' : ''}
-                        {priceChange.value.toFixed(2)} ({priceChange.percentage.toFixed(2)}%)
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="text-gray-500 italic">
-                {loading ? 'Loading stock details...' : 'Search for a stock to see details'}
-              </div>
-            )}
-          </div>
+        {/* Chart Section */}
+        <div className="p-4">
+          {filteredData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={filteredData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(tick) => new Date(tick).toLocaleDateString()} 
+                  className="text-sm"
+                />
+                <YAxis 
+                  className="text-sm"
+                  tickFormatter={(value) => `$${value.toFixed(2)}`}
+                />
+                <Tooltip 
+                  labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                  formatter={(value) => [`$${value.toFixed(2)}`, 'Close Price']}
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                    border: '1px solid #ddd',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="close" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-gray-500 py-10">
+              {loading 
+                ? 'Loading...' 
+                : 'Enter a stock symbol to view historical data'}
+            </div>
+          )}
         </div>
       </div>
     </div>
