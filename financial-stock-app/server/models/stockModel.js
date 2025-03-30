@@ -1,3 +1,5 @@
+
+
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
@@ -5,15 +7,7 @@ const Schema = mongoose.Schema;
 const stockSchema = new Schema({
     symbol: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    description: { type: String, required: true},
-    marketCap: { type: Number,required: true },
-    currency: { type: String , required: true},
-    lastClose: { type: Number },  
-    prevClose: { type: Number },  
-    volumeData: { type: Number },     
-  }, 
-  {toJSON: { virtuals: true} }
-  );
+});
   // Virtual function to calculate % change
   stockSchema.virtual('percentChange').get(function () {
     if (!this.lastClose || !this.prevClose) return null;

@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 const stockHistoryModel = new Schema({
     symbol: { type: String, required: true, unique: true },
     name: { type: String, required: true },
+    marketcap: { type: Number, required: true},
     historicalData: [
         {
             date: {type: Date},
