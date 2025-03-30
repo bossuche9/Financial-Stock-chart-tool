@@ -2,8 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Profile from "./components/Profile"; // Ensure Profile 
-import StockSearch from "./components/Searchbar"
+import StockSearch from "./components/Searchbar";
 import Watchlist from "./components/Watchlist";
+import StockChart from "./components/StockChart";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/search" element={<StockSearch/>} />
         <Route path="/watchlist" element={<Watchlist/>} />
+        <Route path="/charts" element={<StockChart/>} />
+        
       </Routes>
     </Router>
   );

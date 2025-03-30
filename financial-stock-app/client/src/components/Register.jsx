@@ -57,6 +57,7 @@ const Register = () => {
                 <button type="submit">Register</button>
             </form>
             {message && <p>{message}</p>}
+            <p>Can try out the app<Link to={"/charts"}> here</Link></p>
             <p>Already registered,<Link to = {"/login"}> click here to login</Link></p>
         </div>
     );
