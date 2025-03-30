@@ -117,7 +117,7 @@ const getHistoricalData = asyncHandler(async(req,res) => {
                 symbol: result.meta.symbol,
                 name: stockquote.shortName,
                 marketcap: stockquote.marketCap,
-                historicalDaTA: newHistoricalData,
+                historicalData: newHistoricalData,
                 updatedAt: new Date()
             });
         } else {
@@ -215,7 +215,7 @@ const getStockSuggestions = asyncHandler(async(req,res) => {
     }catch(error) {
         console.error(`Error fetching stock suggestions:`, error);
         res.status(500).json({
-            message: "Erro retrieving stock suggestions",
+            message: "Error retrieving stock suggestions",
             error: error.message
         });
     }
