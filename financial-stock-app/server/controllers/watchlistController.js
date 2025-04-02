@@ -1,7 +1,9 @@
 const asyncHandler = require("express-async-handler");
 const Stock = require('../models/stockModel');
 const User = require('../models/userModel');
+const Watchlist = require('../models/watchListModel');
 const axios = require('axios');
+const { default: yahooFinance } = require("yahoo-finance2");
 require('dotenv').config();
 
 const apiKey = process.env.ALPHA_VINTAGE_API_KEY;
@@ -31,54 +33,53 @@ const addToWatchlist = asyncHandler(async(req, res) => {
         return res.status(404).json({message: "User does not exist." });
     }
 
-    let stock = await Stock.findOne({symbol: symbol.toUpperCase()});
+    let stock = await Watchlist.findOne({symbol: symbol.toUpperCase()});
 
     if(!stock){
-        stock = await Stock.findOne({name: {$regex: new RegExp(`${symbol}$`, "i") } });
+        stock = await Watchlist.findOne({name: {$regex: new RegExp(`${symbol}$`, "i") } });
     }
     
-   
+
     if(!stock) {
-    console.log("Fetching from API...");
+        console.log("Fetching from API instead of database...");
+
     try {
-        
-        const overviewResponse = await axios.get(
-            `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${apiKey}`
-        );
-        const overviewData = overviewResponse.data;
 
-        if (!overviewData || !overviewData.Symbol) {
-            return res.status(400).json({ message: "Company overview not found." });
+        const queryOptions = {
+            fields : ["symbol", "displayName", "regularMarketChange", "regularMarketChangePercent", "shortName", "longName" ]
+        };
+
+        const StockResponse = await yahooFinance.quote(symbol,queryOptions);
+
+        console.log("Yahoo Finance Response:", StockResponse);
+
+
+        if(!StockResponse){
+            return res.status(400).json({ message: "Stock quote not found on yahoo finance."});
         }
 
+        let existingStock =  await Watchlist.findOne({ symbol: StockResponse.symbol });
+
+        if(!existingStock){
+            stock = new Watchlist({
+                symbol: StockResponse.symbol,
+                name: StockResponse.displayName || StockResponse.shortName || StockResponse.longName ,
+                percentchange: StockResponse.regularMarketChangePercent || "N/A" ,
+                change: StockResponse.regularMarketChange || "N/A",
+            });
         
-        const dailyResponse = await axios.get(
-            `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}`
-        );
-        const dailyData = dailyResponse.data;
-
-        if (!dailyData || !dailyData["Time Series (Daily)"]) {
-            return res.status(400).json({ message: "Stock time series data not found." });
+        try {
+            await stock.save();
+        } catch (error) {
+            console.error("Error saving stock data:", error);
+            return res.status(500).json({ message: "Error saving stock data" });
         }
+    } else {
+        stock = existingStock; // Use the existing stock to avoid duplicates
+    }
+        
 
-        const latestDate = Object.keys(dailyData["Time Series (Daily)"])[0];
-        const latestData = dailyData["Time Series (Daily)"][latestDate];
-
-        stock = new Stock({
-            symbol: overviewData.Symbol,
-            name: overviewData.Name,
-            description: overviewData.Description,
-            marketCap: parseFloat(overviewData.MarketCapitalization),
-            currency: overviewData.Currency,
-            lastClose: parseFloat(latestData["4. close"]),
-            prevClose: parseFloat(latestData["1. open"]),
-            volumeData: parseFloat(latestData["5. volume"]),
-        });
-
-        // Save the stock info to the database
-        await stock.save();
-        console.log(symbol, "added to watchlist")
-    } catch (error) {
+    }catch(error){
         console.error("Error fetching stock data:", error);
         return res.status(500).json({ message: "Error fetching stock data" });
     }
@@ -89,6 +90,7 @@ const addToWatchlist = asyncHandler(async(req, res) => {
     }
 
     user.watchlist.push(stock._id);
+    console.log(symbol, "added to watchlist")
     await user.save();
 
     const updatedUser = await User.findById(user._id).populate('watchlist');
@@ -108,7 +110,7 @@ const removeFromWatchlist = asyncHandler(async (req, res) => {
         return res.status(404).json({message: "User does not exist." });
     }
 
-    const stock = await Stock.findOne({ symbol: symbol.toUpperCase() });
+    const stock = await Watchlist.findOne({ symbol: symbol.toUpperCase() });
     if(!stock){
         return res.status(404).json({ message: "stock not found."});
     }

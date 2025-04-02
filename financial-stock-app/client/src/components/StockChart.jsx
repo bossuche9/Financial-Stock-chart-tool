@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 import { 
   LineChart, 
   Line, 
@@ -10,7 +11,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
-// Time range options
+
 const TIME_RANGES = [
   { label: '1D', value: '1d' },
   { label: '5D', value: '5d' },
@@ -24,8 +25,10 @@ const TIME_RANGES = [
 ];
 
 const StockChart = () => {
-  // State definitions
-  const [symbol, setSymbol] = useState('');
+
+  const {symbol: urlSymbol} = useParams();
+
+  const [symbol, setSymbol] = useState(urlSymbol ||'');
   const [historicalData, setHistoricalData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState('1y');
@@ -35,9 +38,16 @@ const StockChart = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  useEffect(() => {
+    if (urlSymbol) {
+      fetchHistoricalData(urlSymbol);
+    }
+  }, [urlSymbol]);
+
   const fetchSuggestions = async (query) => {
     if (query.length < 1) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
@@ -62,6 +72,8 @@ const StockChart = () => {
     setShowSuggestions(false);
     fetchHistoricalData(selectedSymbol);
   };
+
+  
 
   // Filter data based on time range
   const filterDataByTimeRange = (data, range) => {
@@ -128,14 +140,13 @@ const StockChart = () => {
         break;
       case 'all':
       default:
-        // No filtering
         break;
     }
 
     return filteredData;
   };
 
-  // Fetch historical data
+  
   const fetchHistoricalData = async (symbolToFetch = symbol) => {
     if (!symbolToFetch) return;
   
@@ -143,7 +154,7 @@ const StockChart = () => {
     setError(null);
   
     try {
-      // Use relative paths
+     
       const postResponse = await axios.post('/api/stocks/historical', { symbol: symbolToFetch });
 
       if(postResponse.status === 200) {
@@ -164,7 +175,7 @@ const StockChart = () => {
     }
   };
 
-  // Handle time range selection
+  
   const handleTimeRangeSelect = (range) => {
     setSelectedTimeRange(range);
     const filtered = filterDataByTimeRange(historicalData, range);
@@ -187,7 +198,7 @@ const StockChart = () => {
           <button 
             onClick={() => fetchHistoricalData()} 
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors"
+            className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors"
           >
             {loading ? 'Getting data...' : 'Search Stock'}
           </button>
@@ -200,7 +211,7 @@ const StockChart = () => {
                   onClick={() => handleSuggestionSelect(suggestion.symbol)}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                 >
-                  <span className="font-bold">{suggestion.symbol}</span>
+                  <span className="font-bold">{suggestion.symbol} </span>
                   <span className="text-gray-500 ml-2">{suggestion.name}</span>
                 </div>
               ))}
@@ -208,7 +219,7 @@ const StockChart = () => {
           )}
         </div>
 
-        {/* Time Range Buttons */}
+       
         <div className="flex justify-center space-x-2 p-4 bg-gray-50 flex-wrap">
           {TIME_RANGES.map((range) => (
             <button
@@ -217,7 +228,7 @@ const StockChart = () => {
               className={`
                 px-3 py-1 text-sm rounded-full transition-all duration-200
                 ${selectedTimeRange === range.value 
-                  ? 'bg-blue-500 text-white' 
+                  ? 'bg-blue-500 text-black' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
               `}
             >
@@ -226,14 +237,14 @@ const StockChart = () => {
           ))}
         </div>
 
-        {/* Error Message */}
+     
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
-        {/* Chart Section */}
+        
         <div className="p-4">
           {filteredData.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
