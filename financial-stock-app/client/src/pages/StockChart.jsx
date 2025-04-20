@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useRef } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { 
@@ -12,8 +12,9 @@ import {
 } from 'recharts';
 
 
+
 const TIME_RANGES = [
-  { label: '1D', value: '1d' },
+  { label: 'Realtime', value: '1d' },
   { label: '5D', value: '5d' },
   { label: '1M', value: '1m' },
   { label: '3M', value: '3m' },
@@ -34,6 +35,9 @@ const StockChart = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('1y');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const[quote,setQuote] = useState(null);
+
+
 
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -71,6 +75,7 @@ const StockChart = () => {
     setSymbol(selectedSymbol);
     setShowSuggestions(false);
     fetchHistoricalData(selectedSymbol);
+    fetchQuote(selectedSymbol);
   };
 
   
@@ -146,41 +151,111 @@ const StockChart = () => {
     return filteredData;
   };
 
+  function formatMarketCap(num) {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+    if (num >= 1e9)  return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6)  return (num / 1e6).toFixed(2) + 'M';
+    return num.toLocaleString();
+  }
+  
   
   const fetchHistoricalData = async (symbolToFetch = symbol) => {
     if (!symbolToFetch) return;
-  
     setLoading(true);
     setError(null);
   
-    try {
-     
-      const postResponse = await axios.post('/api/stocks/historical', { symbol: symbolToFetch });
+   try {
+       // existing historical data fetch
+       await axios.post('/api/stocks/historical', { symbol: symbolToFetch });
+       const { data } = await axios.get(`/api/historical/${symbolToFetch}`);
+        console.log("Fetched Historical Data:", data);
+       setHistoricalData(data.historicalData);
+       setFilteredData(filterDataByTimeRange(data.historicalData, selectedTimeRange));
 
-      if(postResponse.status === 200) {
-        const response = await axios.get(`/api/historical/${symbolToFetch}`);
       
-        const data = response.data.historicalData;
-    
-        setHistoricalData(data);
-        const filtered = filterDataByTimeRange(data, selectedTimeRange);
-        setFilteredData(filtered);
-      }
- 
+     } catch (error) {
+       console.error('Error fetching historical data:', error);
+       setError('Failed to fetch stock data. Please check the symbol and try again.');
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   const fetchQuote = async (symbolToFetch = symbol) => {
+    if (!symbolToFetch) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axios.get(`/api/stocks/quote/${symbolToFetch}`);
+      console.log("Fetched Quote Data:", data);
+      setQuote(data);
     } catch (error) {
-      console.error('Error fetching historical data:', error);
-      setError('Failed to fetch stock data. Please check the symbol and try again.');
+      console.error('Error fetching quote data:', error);
+      setError('Failed to fetch stock quote. Please check the symbol and try again.');
     } finally {
       setLoading(false);
     }
-  };
+   }
 
+  // simulation logic
+const generateSimulatedData = (basePrice, lastTimestamp, count = 50) => {
+  const data = [];
+  const interval = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const startTime = new Date(lastTimestamp).getTime() - (count - 1) * interval;
   
-  const handleTimeRangeSelect = (range) => {
-    setSelectedTimeRange(range);
+  for (let i = 0; i < count; i++) {
+    const timestamp = new Date(startTime + i * interval);
+    // More realistic price movement with some trend and volatility
+    const volatility = basePrice * 0.005; // 0.5% volatility
+    const variation = (Math.random() - 0.5) * 2 * volatility;
+    const close = parseFloat((basePrice + variation).toFixed(2));
+    data.push({ date: timestamp.toISOString(), close });
+    basePrice = close; // Use last price as base for next point
+  }
+  return data;
+};
+
+const handleTimeRangeSelect = (range) => {
+  setSelectedTimeRange(range);
+
+  if (range === '1d' && historicalData.length > 0) {
+    const lastData = historicalData[historicalData.length - 1];
+    const lastClose = lastData.close;
+    const lastDate = lastData.date;
+    const simulatedData = generateSimulatedData(lastClose, lastDate);
+    setFilteredData(simulatedData);
+  } else {
     const filtered = filterDataByTimeRange(historicalData, range);
     setFilteredData(filtered);
+  }
+};
+
+useEffect(() => {
+  let intervalId;
+  
+  if (selectedTimeRange === '1d' && historicalData.length > 0) {
+    intervalId = setInterval(() => {
+      setFilteredData(prevData => {
+        if (!prevData.length) return prevData;
+        
+        const last = prevData[prevData.length - 1];
+        const volatility = last.close * 0.001; // 0.1% volatility for smaller movements
+        const variation = (Math.random() - 0.5) * 2 * volatility;
+        const newClose = parseFloat((last.close + variation).toFixed(2));
+        const newPoint = {
+          date: new Date().toISOString(),
+          close: newClose
+        };
+
+        return [...prevData.slice(1), newPoint]; // Remove oldest, add newest
+      });
+    }, 30000); // Update every 30 seconds as you mentioned
+  }
+  
+  return () => {
+    if (intervalId) clearInterval(intervalId);
   };
+}, [selectedTimeRange, historicalData.length]);
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -196,7 +271,7 @@ const StockChart = () => {
             className="flex-grow px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button 
-            onClick={() => fetchHistoricalData()} 
+            onClick={() =>[fetchHistoricalData(), fetchQuote()]} 
             disabled={loading}
             className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors"
           >
@@ -252,7 +327,14 @@ const StockChart = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis 
                   dataKey="date" 
-                  tickFormatter={(tick) => new Date(tick).toLocaleDateString()} 
+                  tickFormatter={(tick) => {
+                     // Format as time (HH:MM) when 1d range is selected
+                    if (selectedTimeRange === '1d') {
+                     return new Date(tick).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+               }
+                  // Otherwise keep the date format
+                     return new Date(tick).toLocaleDateString();
+                }} 
                   className="text-sm"
                 />
                 <YAxis 
@@ -261,7 +343,7 @@ const StockChart = () => {
                 />
                 <Tooltip 
                   labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                  formatter={(value) => [`$${value.toFixed(2)}`, 'Close Price']}
+                  formatter={(value) => selectedTimeRange === "1d" ? [`$${value.toFixed(2)}`, 'Current Price']: [`$${value.toFixed(2)}`, 'Closing Price']}
                   contentStyle={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.9)', 
                     border: '1px solid #ddd',
@@ -283,6 +365,31 @@ const StockChart = () => {
                 ? 'Loading...' 
                 : 'Enter a stock symbol to view historical data'}
             </div>
+          )}
+        </div>
+
+
+           {/* Sidebar details */}
+        <div className="w-1/3 bg-gray-50 shadow rounded-lg p-4">
+          {quote ? (
+            <>
+              <h2 className="text-xl font-semibold mb-3">{symbol.toUpperCase()} Details</h2>
+              <p><span className="font-medium">Price:</span> ${quote.price.toFixed(2)}</p>
+              <p>
+                <span className="font-medium">% Change:</span>
+                <span className={quote.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {quote.changePercent.toFixed(2)}%
+                </span>
+              </p>
+              <p><span className="font-medium">Prev. Close:</span> ${quote.previousClose.toFixed(2)}</p>
+              <p><span className="font-medium">Market Cap:</span> ${formatMarketCap(quote.marketCap)}</p>
+              <p><span className="font-medium">Volume:</span> {quote.volume.toLocaleString()}</p>
+              <hr className="my-3" />
+              <p><span className="font-medium">50‑Day MA:</span> ${quote.fiftyDayAvg.toFixed(2)}</p>
+              <p><span className="font-medium">200‑Day MA:</span> ${quote.twoHundredDayAvg.toFixed(2)}</p>
+            </>
+          ) : (
+            <p className="text-gray-500">No data to display.</p>
           )}
         </div>
       </div>

@@ -99,7 +99,19 @@ const getHistoricalData = asyncHandler(async(req,res) => {
 
         res.status(500).json({ 
             message: `Error retrieving ${symbol} historical stock data`, 
-            error: error.message 
+            error: error.message ,
+            historicalData:stockHistory.historicalData,
+            quote: {
+                symbol: stockquote.symbol,
+                longName: stockquote.longName,
+                regularMarketPrice: stockquote.regularMarketPrice,
+                regularMarketPreviousClose: stockquote.regularMarketPreviousClose,
+                regularMarketChangePercent: stockquote.regularMarketChangePercent,
+                marketCap: stockquote.marketCap,
+                regularMarketVolume: stockquote.regularMarketVolume,
+                fiftyDayAverage: stockquote.fiftyDayAverage,
+                twoHundredDayAverage: stockquote.twoHundredDayAverage
+            }
         });
     }
 });
@@ -170,4 +182,22 @@ const getStockSuggestions = asyncHandler(async(req,res) => {
 
 });
 
-module.exports = { getHistoricalData, sortedHistoricalDataFunc, getStockSuggestions};
+const getQuote = asyncHandler(async (req, res) => {
+    const { symbol } = req.params;
+    const quote = await yahooFinance.quote(symbol);
+    console.log(quote);
+  
+    res.json({
+      price: quote.regularMarketPrice,
+      changePercent: quote.regularMarketChangePercent,
+      previousClose: quote.regularMarketPreviousClose,
+      marketCap: quote.marketCap,
+      volume: quote.regularMarketVolume,
+      fiftyDayAvg: quote.fiftyDayAverage,
+      twoHundredDayAvg: quote.twoHundredDayAverage,
+    });
+  });
+
+
+
+module.exports = { getHistoricalData, sortedHistoricalDataFunc, getStockSuggestions,  getQuote};

@@ -19,7 +19,7 @@ const Register = () => {
             const res = await registerUser(formData);
             setMessage(res.data.message);
             setFormData({username: "", email:"", password:""});
-            await timeout(4000);
+           
             navigation("/login");
 
         } catch (error) {
@@ -28,10 +28,7 @@ const Register = () => {
         }
     };
 
-    function timeout(delay) {
-        return new Promise(res => (res,delay))
-    }
-
+    
     return (
         <div>
             <h2>Register</h2>

@@ -30,10 +30,11 @@ const Login = () => {
     }
 
     return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
+        <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <input 
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 type="email" 
                 name="email" 
                 placeholder="Email" 
@@ -45,9 +46,9 @@ const Login = () => {
                 placeholder="Password" 
                 onChange={handleChange} 
                 required />
-                <button type="submit">Login</button>
+                <button type="submit" className="w-full py-2 bg-blue-500 text-black rounded hover:bg-blue-600 transition">Login</button>
             </form>
-            <p>Not registered,<Link to = {"/"}> click here to Register</Link></p>
+            <p className="mt-4 text-sm text-gray-600 text-center">Not registered,<Link to = {"/"} className="text-blue-600 hover:underline"> click here to Register</Link></p>
             {message && <p>{message}</p>}
         </div>
     );
