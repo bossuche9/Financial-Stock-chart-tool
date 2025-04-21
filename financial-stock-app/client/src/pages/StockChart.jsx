@@ -191,6 +191,7 @@ const StockChart = () => {
       const { data } = await axios.get(`/api/stocks/quote/${symbolToFetch}`);
       console.log("Fetched Quote Data:", data);
       setQuote(data);
+      console.log("Quote Data:", data);
     } catch (error) {
       console.error('Error fetching quote data:', error);
       setError('Failed to fetch stock quote. Please check the symbol and try again.');
@@ -375,7 +376,7 @@ useEffect(() => {
         <div className="w-1/3 bg-gray-50 shadow rounded-lg p-4">
           {quote ? (
             <>
-              <h2 className="text-xl font-semibold mb-3">{symbol.toUpperCase()} Details</h2>
+              <h2 className="text-xl font-semibold mb-3"> {quote.name || symbol.toUpperCase()} {symbol.toUpperCase()} Details</h2>
               <p><span className="font-medium">Price:</span> ${quote.price.toFixed(2)}</p>
               <p>
                 <span className="font-medium">% Change:</span>

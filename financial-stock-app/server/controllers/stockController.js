@@ -50,7 +50,7 @@ const getHistoricalData = asyncHandler(async(req,res) => {
         }));
 
         if(!stockHistory) {
-            // Create new stock history document
+            
             stockHistory = new HistoricalStockData({
                 symbol: result.meta.symbol,
                 name: stockquote.shortName,
@@ -59,8 +59,7 @@ const getHistoricalData = asyncHandler(async(req,res) => {
                 updatedAt: new Date()
             });
         } else {
-            // Append new data to existing historical data
-            // Use Set to avoid duplicates based on date string representation
+            
             const existingDateSet = new Set(
                 stockHistory.historicalData.map(d => new Date(d.date).toISOString().split('T')[0])
             );
@@ -73,7 +72,7 @@ const getHistoricalData = asyncHandler(async(req,res) => {
             stockHistory.updatedAt = new Date();
             stockHistory.marketcap = stockquote.marketCap; // Update market cap
             
-            // If the symbol case in DB doesn't match Yahoo's, update it
+            
             if (stockHistory.symbol !== result.meta.symbol) {
                 stockHistory.symbol = result.meta.symbol;
             }

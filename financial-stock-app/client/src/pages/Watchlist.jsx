@@ -6,9 +6,13 @@ import { useNavigate } from "react-router-dom";
 const Watchlist = () => {
     const navigate = useNavigate();
     const [error, setError] = useState("");
-    const [watchList, setWatchList] = useState([]);
+    //const [watchList, setWatchList] = useState([]);
     const [symbol, setSymbol] = useState("");
     const [message, setMessage] = useState("");
+    const[quote,setQuote] = useState(null);
+    const [rawWatchList, setRawWatchList] = useState([]);
+    const [watchList,   setWatchList]   = useState([]);
+
 
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -31,22 +35,49 @@ const Watchlist = () => {
         }
     };
 
-    const fetchWatchListDetails = async() => {
+    const fetchWatchListDetails = async () => {
         const token = localStorage.getItem("token");
-        if(!token){
-            setError("No token found, login first");
-            return;
+        if (!token) {
+          setError("No token found, login first");
+          return;
         }
-        
-        try{
-            console.log("Watch list value before being fetched",watchList);
-            const response = await getWatchlistDetails(token);
-            console.log("Response watchlist:", response.data.watchlist);
-            setWatchList(response.data.watchlist);
-        } catch(err){
-            setError(err.response?.data?.error || "Failed to get watchlist details");
+        try {
+          const response = await getWatchlistDetails(token);
+          setRawWatchList(response.data.watchlist);
+        } catch (err) {
+          setError(err.response?.data?.error || "Failed to get watchlist details");
         }
-    };
+      };
+      
+      useEffect(() => {
+        fetchWatchListDetails();
+    }, []);
+
+      useEffect(() => {
+        if (!rawWatchList.length) return;
+      
+        const enrich = async () => {
+          const updated = await Promise.all(
+            rawWatchList.map(async (stock) => {
+              try {
+                const { data } = await axios.get(`/api/stocks/quote/${stock.symbol}`);
+                return {
+                  ...stock,
+                  price:         data.price,
+                  previousClose: data.previousClose,
+                  changePercent: data.changePercent,
+                };
+              } catch (err) {
+                console.error(`Quote fetch failed for ${stock.symbol}`, err);
+                return stock; // fallback to DB data
+              }
+            })
+          );
+          setWatchList(updated);
+        };
+      
+        enrich();
+      }, [rawWatchList]);
 
     const handleInputChange = (event) => {
         const value = event.target.value.toUpperCase();
@@ -147,47 +178,41 @@ const Watchlist = () => {
         return numericChange >= 0 ? `+${numericChange}%` : `${numericChange}%`;
     }
 
-    useEffect(() => {
-        fetchWatchListDetails();
-    }, []);
-
+   
     function DisplayWatchList() {
-        const stockWatchList = watchList.map(stock => {
-            const percentChangeClass = getPercentChangeColor(stock.percentchange);
-            
-            return (
-                <li key={stock.id} className="watchlist-item flex items-center justify-between p-3 border-b border-gray-200 last:border-b-0">
-                    <div className="flex-grow">
-                        <span 
-                            className="stock-name text-lg font-medium cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
-                            onClick={() => handleStockClick(stock.symbol)}
-                        >
-                            {stock.name} ({stock.symbol})
-                        </span>
-                        <span 
-                            className={`stock-percent ml-4 font-bold ${percentChangeClass}`}
-                        >
-                            {formatPercentChange(stock.percentchange.toFixed(2))}
-                        </span>
-                    </div>
-                    <button 
-                        onClick={() => handleRemoveStock(stock.symbol)}
-                        className="delete-btn bg-red-500 text-black px-3 py-1 rounded hover:bg-red-600 transition-colors"
-                    >
-                        Delete
-                    </button>
-                </li>
-            );
-        });
-        
         return watchList.length > 0 ? (
-            <ul className="watchlist-container bg-white shadow-md rounded-lg overflow-hidden mt-4">
-                {stockWatchList}
-            </ul>
+          <ul className="watchlist-container bg-white shadow-md rounded-lg overflow-hidden mt-4">
+            {watchList.map(stock => {
+              const changeClass = stock.changePercent >= 0 ? 'text-green-600' : 'text-red-600';
+              return (
+                <li key={stock._id} className="flex items-center justify-between p-3 border-b">
+                  <div className="flex-grow cursor-pointer" onClick={() => handleStockClick(stock.symbol)}>
+                    <span className="font-medium">{stock.name} ({stock.symbol})</span>
+                    <span className="ml-4">Current CLose: ${stock.price?.toFixed(2) ?? '—'}</span>
+                    <span className="ml-4"> Previous Close: ${stock.previousClose?.toFixed(2) ?? '—'}</span>
+                    <span className={`ml-4 font-bold ${changeClass}`}>
+                      {stock.changePercent != null
+                        ? `${stock.changePercent.toFixed(2)}%`
+                        : '—'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveStock(stock.symbol)}
+                    className="bg-red-500 text-black px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         ) : (
-            <p className="text-center text-gray-500 mt-4">Your watchlist is empty. Add stocks to get started.</p>
+          <p className="text-center text-gray-500 mt-4">
+            Your watchlist is empty.
+          </p>
         );
-    }
+      }
+      
  
     return(
         <div className="watchlist-page max-w-4xl mx-auto p-4">
