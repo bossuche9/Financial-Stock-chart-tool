@@ -44,7 +44,9 @@ const StockChart = () => {
 
   useEffect(() => {
     if (urlSymbol) {
+      setSymbol(urlSymbol);
       fetchHistoricalData(urlSymbol);
+      fetchQuote(urlSymbol);
     }
   }, [urlSymbol]);
 
@@ -80,14 +82,14 @@ const StockChart = () => {
 
   
 
-  // Filter data based on time range
+  
   const filterDataByTimeRange = (data, range) => {
     if (!data || data.length === 0) return [];
 
     let filteredData = [...data];
     const now = new Date();
 
-    // Create a pure date at the start of the day to avoid time zone issues
+    
     const createDateAtStartOfDay = (date) => {
       const newDate = new Date(date);
       newDate.setHours(0, 0, 0, 0);
@@ -165,7 +167,7 @@ const StockChart = () => {
     setError(null);
   
    try {
-       // existing historical data fetch
+       
        await axios.post('/api/stocks/historical', { symbol: symbolToFetch });
        const { data } = await axios.get(`/api/historical/${symbolToFetch}`);
         console.log("Fetched Historical Data:", data);
@@ -239,7 +241,7 @@ useEffect(() => {
         if (!prevData.length) return prevData;
         
         const last = prevData[prevData.length - 1];
-        const volatility = last.close * 0.001; // 0.1% volatility for smaller movements
+        const volatility = last.close * 0.001; // 
         const variation = (Math.random() - 0.5) * 2 * volatility;
         const newClose = parseFloat((last.close + variation).toFixed(2));
         const newPoint = {
@@ -249,7 +251,7 @@ useEffect(() => {
 
         return [...prevData.slice(1), newPoint]; // Remove oldest, add newest
       });
-    }, 30000); // Update every 30 seconds as you mentioned
+    }, 30000); // Update every 30 seconds 
   }
   
   return () => {
@@ -328,11 +330,11 @@ useEffect(() => {
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={(tick) => {
-                     // Format as time (HH:MM) when 1d range is selected
+                     
                     if (selectedTimeRange === '1d') {
                      return new Date(tick).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                }
-                  // Otherwise keep the date format
+                  
                      return new Date(tick).toLocaleDateString();
                 }} 
                   className="text-sm"

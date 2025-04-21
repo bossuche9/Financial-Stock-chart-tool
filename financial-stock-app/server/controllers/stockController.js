@@ -188,6 +188,7 @@ const getQuote = asyncHandler(async (req, res) => {
     console.log(quote);
   
     res.json({
+      name: quote.displayName,
       price: quote.regularMarketPrice,
       changePercent: quote.regularMarketChangePercent,
       previousClose: quote.regularMarketPreviousClose,

@@ -167,7 +167,7 @@ const Watchlist = () => {
                         <span 
                             className={`stock-percent ml-4 font-bold ${percentChangeClass}`}
                         >
-                            {formatPercentChange(stock.percentchange)}
+                            {formatPercentChange(stock.percentchange.toFixed(2))}
                         </span>
                     </div>
                     <button 

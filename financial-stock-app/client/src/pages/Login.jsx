@@ -25,9 +25,7 @@ const Login = () => {
         }
     };
 
-    function timeout(delay) {
-        return new Promise(res => (res,delay))
-    }
+   
 
     return (
         <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow-md">
