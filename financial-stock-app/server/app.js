@@ -7,6 +7,9 @@ const stockRoutes = require('./routes/stockRoutes.js');
 const watchListRoutes = require('./routes/watchListRoutes.js')
 const createError = require('http-errors');
 const { watch } = require('./models/userModel.js');
+const path = require("path");
+const { startSimulators } = require("./services/simulator.js");
+const realtimeRoutes = require("./routes/realtimeRoutes.js");
 
 
 const PORT =process.env.PORT || 3000;
@@ -21,6 +24,7 @@ app.use(cors());
 app.use('/api', authRoutes);
 app.use('/api', stockRoutes);
 app.use('/api', watchListRoutes);
+app.use("/api/realtime", realtimeRoutes);
 
 // Default route
 app.get('/', (req, res) => {
@@ -45,9 +49,27 @@ app.use(function(req, res, next) {
     res.json('error page does not exist');
   });
 
-  app.listen(PORT, ()=> {
-    console.log(`Server Started at ${PORT}`)
+  (async function bootstrap() {
+    const Stock = require("./models/stockModel");
+    let symbols = (await Stock.find().select("symbol -_id"))
+                  .map(s => s.symbol);
+  
+    // if your stocks collection is empty, fallback to history:
+    if (!symbols.length) {
+      const Hist = require("./models/stockHistoryModel");
+      symbols = (await Hist.find().select("symbol -_id"))
+                .map(h => h.symbol);
+    }
+  
+    console.log("🟢 Starting simulators for:", symbols);
+    startSimulators(symbols);
+  })();
+
+  // Start the HTTP server
+app.listen(PORT, () => {
+  console.log(`🚀 Server listening on port ${PORT}`);
 });
+
   
   module.exports = app;
   

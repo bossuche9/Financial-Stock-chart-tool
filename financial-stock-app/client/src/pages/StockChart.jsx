@@ -36,6 +36,7 @@ const StockChart = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const[quote,setQuote] = useState(null);
+  const [data, setData] = useState([]);
 
 
 
@@ -49,6 +50,35 @@ const StockChart = () => {
       fetchQuote(urlSymbol);
     }
   }, [urlSymbol]);
+
+  const fetchRealtimeData = async () => {
+    if (!symbol) return;
+    setLoading(true);
+    try {
+      const { data: bars } = await axios.get(`/api/realtime/${symbol}`);
+      let chartData = bars;
+
+      // if last bar is older than 5 min → append a flat tick at “now”
+      if (bars.length) {
+        const last = bars[bars.length - 1];
+        const ageMs = Date.now() - new Date(last.date).getTime();
+        if (ageMs > 5 * 60_000) {
+          chartData = [
+            ...bars,
+            { date: new Date().toISOString(), close: last.close }
+          ];
+        }
+      }
+
+      setData(chartData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
 
   const fetchSuggestions = async (query) => {
     if (query.length < 1) {
@@ -201,7 +231,7 @@ const StockChart = () => {
    }
 
   // simulation logic
-const generateSimulatedData = (basePrice, lastTimestamp, count = 50) => {
+/*const generateSimulatedData = (basePrice, lastTimestamp, count = 50) => {
   const data = [];
   const interval = 5 * 60 * 1000; // 5 minutes in milliseconds
   const startTime = new Date(lastTimestamp).getTime() - (count - 1) * interval;
@@ -216,12 +246,12 @@ const generateSimulatedData = (basePrice, lastTimestamp, count = 50) => {
     basePrice = close; // Use last price as base for next point
   }
   return data;
-};
+}; */
 
 const handleTimeRangeSelect = (range) => {
   setSelectedTimeRange(range);
 
-  if (range === '1d' && historicalData.length > 0) {
+  /*if (range === '1d' && historicalData.length > 0) {
     const lastData = historicalData[historicalData.length - 1];
     const lastClose = lastData.close;
     const lastDate = lastData.date;
@@ -230,10 +260,31 @@ const handleTimeRangeSelect = (range) => {
   } else {
     const filtered = filterDataByTimeRange(historicalData, range);
     setFilteredData(filtered);
-  }
+  }*/
+
+    if (range === '1d') {
+      fetchRealtimeData();
+     } else {
+      setFilteredData(filterDataByTimeRange(historicalData, range));
+    }
 };
 
-useEffect(() => {
+  useEffect(() => {
+    let intervalId;
+  
+    if (selectedTimeRange === '1d' && symbol) {
+     // initial load
+      fetchRealtimeData();
+      // then poll every 30 seconds
+      intervalId = setInterval(fetchRealtimeData, 30_000);
+    }
+  
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [selectedTimeRange, symbol]);
+
+/*useEffect(() => {
   let intervalId;
   
   if (selectedTimeRange === '1d' && historicalData.length > 0) {
@@ -258,7 +309,7 @@ useEffect(() => {
   return () => {
     if (intervalId) clearInterval(intervalId);
   };
-}, [selectedTimeRange, historicalData.length]);
+}, [selectedTimeRange, historicalData.length]); */
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -326,7 +377,7 @@ useEffect(() => {
         <div className="p-4">
           {filteredData.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={filteredData}>
+              <LineChart data={selectedTimeRange === '1d' ? data : filteredData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis 
                   dataKey="date" 

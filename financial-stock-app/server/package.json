@@ -22,6 +22,7 @@
     "express-async-handler": "^1.2.0",
     "jq": "^1.7.2",
     "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.5.48",
     "mongoose": "^8.13.0",
     "react-router-dom": "^7.3.0",
     "socket.io": "^4.8.1",
