@@ -188,8 +188,8 @@ const Watchlist = () => {
                 <li key={stock._id} className="flex items-center justify-between p-3 border-b">
                   <div className="flex-grow cursor-pointer" onClick={() => handleStockClick(stock.symbol)}>
                     <span className="font-medium">{stock.name} ({stock.symbol})</span>
-                    <span className="ml-4">Current CLose: ${stock.price?.toFixed(2) ?? '—'}</span>
-                    <span className="ml-4"> Previous Close: ${stock.previousClose?.toFixed(2) ?? '—'}</span>
+                    <span className="ml-4">Today's CLose: ${stock.price?.toFixed(2) ?? '—'}</span>
+                    <span className="ml-4"> Last Close: ${stock.previousClose?.toFixed(2) ?? '—'}</span>
                     <span className={`ml-4 font-bold ${changeClass}`}>
                       {stock.changePercent != null
                         ? `${stock.changePercent.toFixed(2)}%`

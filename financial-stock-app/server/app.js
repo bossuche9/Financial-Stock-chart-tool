@@ -10,6 +10,7 @@ const { watch } = require('./models/userModel.js');
 const path = require("path");
 const { startSimulators } = require("./services/simulator.js");
 const realtimeRoutes = require("./routes/realtimeRoutes.js");
+const marketRoutes = require("./routes/marketRoutes.js");
 
 
 const PORT =process.env.PORT || 3000;
@@ -25,6 +26,7 @@ app.use('/api', authRoutes);
 app.use('/api', stockRoutes);
 app.use('/api', watchListRoutes);
 app.use("/api/realtime", realtimeRoutes);
+app.use("/api/market", marketRoutes);
 
 // Default route
 app.get('/', (req, res) => {
