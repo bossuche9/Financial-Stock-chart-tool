@@ -1,4 +1,4 @@
-on const isRunninginCodespaces = () => {
+const isRunninginCodespaces = () => {
     return window.location.hostname.includes('github.dev');
 }
 
